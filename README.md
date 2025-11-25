@@ -135,10 +135,6 @@ Visualize errors and predictions directly in cells.
 - Short-term focus; extend for seasonality.
 - Assumes i.i.d. post-lags.
 
-## 📄 License
-
-MIT – see implied standard.
-
 ## 🙏 Acknowledgments
 
 Powered by scikit-learn & vecstack. For energy forecasting research.
