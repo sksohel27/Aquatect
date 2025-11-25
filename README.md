@@ -1,157 +1,148 @@
-# Aquatect
+# Inflow Prediction Using Ensemble Methods
 
 [![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/YOUR_COLAB_LINK_HERE)  
 *Run this project interactively in Google Colab!*
 
-**Aquatect** is an advanced machine learning pipeline for forecasting atmospheric pressure in energy systems using lagged features from energy consumption and solar irradiance data. It leverages ensemble stacking to combine diverse regressors, achieving robust predictions with low error rates (e.g., MAPE ≈ 0.70%). Ideal for renewable energy integration, weather-dependent modeling, and time-series analysis.
+**Inflow Prediction Using Ensemble Methods** is a machine learning pipeline for forecasting atmospheric pressure (as a proxy for energy inflow stability) in renewable energy systems. It uses lagged features from energy consumption deltas and global horizontal irradiance (GHI) data, combined via stacked ensemble regression to achieve high accuracy (e.g., MAPE ≈ 0.70%). Built for time-series analysis in weather-dependent energy modeling.
+
+## 🛠️ Technology Stack
+
+This project leverages a modern, open-source Python ecosystem for data science and machine learning:
+
+| Category          | Technologies & Libraries                          | Purpose |
+|-------------------|---------------------------------------------------|---------|
+| **Programming Language** | Python 3.8+                                      | Core scripting and ML implementation |
+| **Data Manipulation** | Pandas, NumPy                                    | Loading, cleaning, and feature engineering (e.g., lag features) |
+| **Machine Learning** | Scikit-learn (SVR, LinearRegression, RandomForestRegressor, DecisionTreeRegressor, KNeighborsRegressor) | Base regressors and metrics (RMSE, MAE, R², MAPE) |
+| **Ensemble Methods** | VecStack                                          | Stacking with out-of-fold predictions and cross-validation |
+| **Model Persistence** | Joblib                                            | Saving and loading trained models |
+| **Utilities**      | Math (sqrt for RMSE)                              | Basic computations |
+| **Environment**    | Jupyter/Colab                                     | Interactive notebooks for development and exploration |
+| **Version Control**| Git/GitHub                                        | Repository management and collaboration |
+
+Dependencies are managed via `requirements.txt` (install with `pip install -r requirements.txt`). No external APIs or cloud services required—runs locally or in free Colab.
 
 ## 🚀 Quick Start
 
 1. **Clone the Repo**:
    ```bash
-   git clone https://github.com/yourusername/aquatect.git
-   cd aquatect
+   git clone https://github.com/sksohel27/Inflow_prediction_using_ensemble.git
+   cd Inflow_prediction_using_ensemble
    ```
 
 2. **Install Dependencies**:
    ```bash
-   pip install -r requirements.txt
+   pip install numpy pandas scikit-learn vecstack joblib matplotlib
    ```
-   Core libraries: `numpy`, `pandas`, `scikit-learn`, `vecstack`, `joblib`, `matplotlib`.
 
 3. **Run the Pipeline**:
-   ```bash
-   python src/main.py --data data/test2021.csv
-   ```
-   This trains models, evaluates performance, and generates forecasts.
+   - Open `Inflow_prediction_using_ensemble.ipynb` (or the main script) in Jupyter/Colab.
+   - Load `test2021.csv` and execute cells to train, evaluate, and predict.
 
 4. **Explore in Colab**:
-   Open the [Google Colab notebook](https://colab.research.google.com/drive/YOUR_COLAB_LINK_HERE) for a no-setup interactive demo, including data visualization and hyperparameter tuning.
+   Open the [Google Colab notebook](https://colab.research.google.com/drive/YOUR_COLAB_LINK_HERE) for a no-setup demo with data viz and tuning.
 
 ## 📁 Project Structure
 
 ```
-aquatect/
-├── src/                 # Core ML pipeline
-│   ├── __init__.py
-│   ├── data_prep.py     # Preprocessing and lag features
-│   ├── models.py        # Base and stacked regressors
-│   └── main.py          # Entry point for training/prediction
-├── data/                # Sample datasets
-│   └── test2021.csv     # Energy-weather time-series data
-├── notebooks/           # Exploratory Jupyter notebooks
-│   └── analysis.ipynb   # Feature engineering and EDA
-├── models/              # Saved artifacts
-│   └── stacked_model.joblib
-├── requirements.txt     # Dependencies
-├── README.md            # You're reading it!
-└── LICENSE              # MIT License
+Inflow_prediction_using_ensemble/
+├── .gitignore              # Standard Git ignores
+├── Inflow_prediction_using_ensemble.ipynb  # Core notebook: Data prep, models, stacking
+├── README.md               # Project documentation
+└── test2021.csv            # Sample dataset: Energy-weather time-series (2021)
 ```
 
 ## 🎯 Features
 
-- **Time-Series Lag Engineering**: Captures autocorrelation with features like $\Delta E_{\text{lag1}} = \Delta E_{t-1}$ and $GHI_{\text{lag1}} = GHI_{t-1}$.
-- **Diverse Ensemble**: Stacks Linear Regression, Random Forest, Decision Tree, K-Neighbors, and SVR for complementary strengths.
-- **Rigorous Evaluation**: Metrics include RMSE, MAE, MAPE, and R², with cross-validation for unbiased stacking.
-- **Forecasting Mode**: Predicts future pressure (e.g., ~1014.68 hPa) on recent data subsets.
-- **Modular & Extensible**: Easy to swap meta-learners or add deep learning (e.g., LSTMs).
+- **Lag Feature Engineering**: Models temporal dependencies with $\Delta E_{\text{lag1}} = \Delta E_{t-1}$ and $GHI_{\text{lag1}} = GHI_{t-1}$.
+- **Stacked Ensemble**: Combines Linear Regression, Random Forest, Decision Tree, K-Neighbors, and SVR for bias-variance reduction.
+- **Evaluation Suite**: RMSE, MAE, MAPE, R² with 4-fold CV.
+- **Forecasting**: Predicts future pressure (e.g., ~1014.68 hPa) on recent data.
+- **Simple & Reproducible**: Single notebook for end-to-end workflow.
 
 ## 🧮 Theoretical Foundations
 
-Aquatect models the conditional expectation $E[y \mid X]$, where $y$ is atmospheric pressure and $X$ includes lagged energy delta ($\Delta E$) and GHI.
+The pipeline estimates $E[y \mid X]$, where $y$ is pressure and $X$ includes lagged energy $\Delta E$ and GHI.
 
-### Linear Regression Baseline
-Minimizes the least squares objective:
+### Linear Regression
+Solves the least squares:
 $$
-\hat{\beta} = \arg\min_{\beta} \sum_{i=1}^n (y_i - \beta_0 - \beta_1 x_{i1} - \cdots - \beta_p x_{ip})^2
+\hat{\beta} = \arg\min_{\beta} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_j x_{ij})^2
 $$
-Predictions follow $\hat{y} = X \hat{\beta}$, assuming linearity for global trends.
+For linear trends in lagged features.
 
-### Stacking Ensemble
-Base models generate meta-features via out-of-fold predictions $S_{\text{train}}$. The meta-learner fits:
+### Stacking
+Meta-features from base OOF predictions $S_{\text{train}}$ feed the meta-learner:
 $$
 \hat{y}_{\text{meta}} = f_{\text{meta}}(S_{\text{test}})
 $$
-With $f_{\text{meta}}$ as Linear Regression, this reduces bias-variance via model diversity, approximating the Bayes optimal predictor.
+Linear meta-model aggregates for optimal prediction.
 
-### Evaluation Metrics
+### Metrics
 - **RMSE**: $\sqrt{\frac{1}{n} \sum (y_i - \hat{y}_i)^2}$
 - **MAPE**: $100 \times \frac{1}{n} \sum \frac{|y_i - \hat{y}_i|}{y_i}$
 - **MAE**: $\frac{1}{n} \sum |y_i - \hat{y}_i|$
 - **R²**: $1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$
 
-## 🏗️ Model Architecture
+## 🏗️ Model Overview
 
-| Model                  | Type              | Hyperparameters                  | Role                          |
-|------------------------|-------------------|----------------------------------|-------------------------------|
-| Linear Regression     | Parametric       | OLS solver                      | Linear trends                 |
-| Random Forest         | Bagging Trees    | n_estimators=10, random_state=0 | Non-linearity, variance reduction |
-| Decision Tree         | Single Tree      | random_state=0                  | Threshold rules               |
-| K-Neighbors           | Instance-Based   | n_neighbors=3                   | Local adaptations             |
-| SVR                   | Kernel Method    | kernel='linear'                 | Outlier robustness            |
+| Model              | Type            | Hyperparameters             | Strength                     |
+|--------------------|-----------------|-----------------------------|------------------------------|
+| Linear Regression | Parametric     | OLS                        | Global linearity             |
+| Random Forest     | Bagging Trees  | n_estimators=10            | Non-linearity handling       |
+| Decision Tree     | Single Tree    | random_state=0             | Interpretable splits         |
+| K-Neighbors       | Instance-Based | n_neighbors=3              | Local patterns               |
+| SVR               | Kernel         | kernel='linear'            | Outlier resistance           |
 
-Trained on 70/30 split with 4-fold CV stacking.
+70/30 split; stacking via vecstack.
 
-## 📊 Performance Benchmarks
+## 📊 Benchmarks
 
-On 2021 dataset (~34k rows):
+On `test2021.csv` (~34k rows):
 
-| Metric     | Stacked Ensemble | Best Base (SVR) | Improvement |
-|------------|------------------|-----------------|-------------|
-| RMSE      | 8.98            | 9.02           | +0.44%     |
-| MAPE (%)  | 0.701           | 0.697          | -0.57%     |
-| MAE       | 7.11            | 7.06           | -0.71%     |
-| R²        | ~0.99           | ~0.99          | Equivalent |
+| Metric    | Stacked | Best Base (SVR) | Δ      |
+|-----------|---------|-----------------|--------|
+| RMSE     | 8.98   | 9.02           | +0.44% |
+| MAPE (%) | 0.701  | 0.697          | -0.57% |
+| MAE      | 7.11   | 7.06           | -0.71% |
+| R²       | ~0.99  | ~0.99          | =      |
 
-Low errors reflect stable pressure (~1000-1015 hPa); stacking excels in volatile periods.
+Stable for pressure range ~1000-1015 hPa.
 
-## 💻 Usage Examples
+## 💻 Usage
 
-### Basic Training & Prediction
+In the notebook:
 ```python
-import pandas as pd
-from src.pipeline import StackingRegressorPipeline
+# Load data
+df = pd.read_csv('test2021.csv')
 
-df = pd.read_csv('data/test2021.csv')
-pipeline = StackingRegressorPipeline()
-pipeline.fit(df)
-future_lags = df.tail(2497)[['Energy_delta_lag1', 'GHI_lag1']].dropna()
-predictions = pipeline.predict(future_lags)
-print(f"Predicted Pressure: {predictions.mean():.2f} hPa")  # e.g., 1014.68
+# Train & predict (excerpt)
+X = df[['Energy_delta_lag1', 'GHI_lag1']].dropna()
+# ... (full pipeline in notebook)
+print(f"Predicted Inflow: {meta_model_prediction[0]:.2f} hPa")
 ```
 
-### Visualization
-```python
-pipeline.plot_metrics()  # RMSE/MAPE plots
-pipeline.plot_predictions(y_test, y_pred)  # Actual vs. Predicted
-```
-
-### Custom Horizons
-Extend lags for multi-step forecasts, e.g., AR(p) structure: $y_t = \sum_{i=1}^p \phi_i y_{t-i} + \epsilon_t$.
+Visualize errors and predictions directly in cells.
 
 ## 🔧 Contributing
 
-1. Fork the repo and create a feature branch.
-2. Install dev deps: `pip install -r dev-requirements.txt`.
-3. Run tests: `pytest tests/`.
-4. Commit & PR: Follow PEP 8; update `CHANGELOG.md`.
-
-Ideas: Add XGBoost boosting, geospatial features, or Bayesian uncertainty.
+- Fork & PR improvements (e.g., add XGBoost).
+- Tests: Run notebook end-to-end.
+- Style: PEP 8.
 
 ## ⚠️ Limitations
 
-- Assumes stationarity; seasonal adjustments needed for long horizons.
-- Zero-inflated inputs (e.g., nighttime GHI=0) may bias baselines.
-- No real-time API; extend for production deployment.
+- Short-term focus; extend for seasonality.
+- Assumes i.i.d. post-lags.
 
 ## 📄 License
 
-MIT License – see [LICENSE](LICENSE) for details.
+MIT – see implied standard.
 
 ## 🙏 Acknowledgments
 
-Built with ❤️ using scikit-learn, vecstack, and Pandas. Inspired by ensemble techniques in renewable energy forecasting.
+Powered by scikit-learn & vecstack. For energy forecasting research.
 
 ---
 
-*Questions? Open an issue or reach out! Last updated: November 2025*
+*Updated: November 26, 2025*
